@@ -1,11 +1,12 @@
-NAV CA Certificate Bundle
-=========================
+NAV CA Bundle
+=============
 
-Installs production and test certificates to your local trust store (Redhat).
+Fetches production and test certificates and converts them to PEM to the specified dir.
 
 # Usage
 
 ```
-sudo ./install-certs.sh
+sudo ./install-certs.sh /etc/pki/ca-trust/source/anchors
+sudo update-ca-trust
 ```
 
