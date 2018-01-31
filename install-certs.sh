@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 function dcurl {
     pushd "$1" > /dev/null
