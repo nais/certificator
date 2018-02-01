@@ -7,6 +7,8 @@ function dcurl {
 }
 
 function download_certs {
+    dcurl "$1" "http://crl.adeo.no/crl/eksterne/webproxy.nav.no.crt"
+
     dcurl "$1" "http://crl.adeo.no/crl/A01PKIROOT2012_NAV%20Root%20CA(1).crt"
     dcurl "$1" "http://crl.adeo.no/crl/A01PKISUB2012_NAV%20Sub%20CA(1).crt"
     dcurl "$1" "http://crl.adeo.no/crl/a01drvw064.adeo.no_NAV%20Issuing%20CA.crt"
