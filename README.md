@@ -10,3 +10,14 @@ sudo ./install-certs.sh /etc/pki/ca-trust/source/anchors
 sudo update-ca-trust
 ```
 
+# Mozilla CA certificate bundle
+
+This is a collection of CA certificates included with Mozilla Firefox.
+See https://curl.haxx.se/docs/caextract.html.
+
+The file is cached in this repository as `cacert.pem`.
+
+To update the file, run:
+```
+curl --remote-name --time-cond cacert.pem https://curl.haxx.se/ca/cacert.pem
+```
