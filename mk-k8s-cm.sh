@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# This script reads a PEM certificate bundle from STDIN, and generates a
+# ConfigMap with both this bundle and a corresponding Java keystore.
+
+pem=`mktemp`
+truststore=`mktemp`
+outdir=`mktemp -d`
+
+rm $truststore
+cat - > $pem
+
+cd $outdir
+split -p "-----BEGIN CERTIFICATE-----" $pem
+for file in *; do
+    file $file >&2
+    keytool -import -noprompt -storepass changeme -alias $file -keystore $truststore -file $file >&2
+done
+
+kubectl \
+    --dry-run=true \
+    --output=yaml \
+    create configmap ca-bundle \
+    --from-file=ca-bundle.pem=${pem},ca-bundle.jks=${truststore}
+
+rm -rf $pem
+rm -rf $truststore
+rm -rf $outdir
