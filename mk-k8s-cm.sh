@@ -13,8 +13,12 @@ cat - > $pem
 cd $outdir
 split -p "-----BEGIN CERTIFICATE-----" $pem
 for file in *; do
-    file $file >&2
-    keytool -import -noprompt -storepass changeme -alias $file -keystore $truststore -file $file >&2
+    echo "--- Processing file $file ---" >&2
+    cap=$(openssl x509 -in "$file" -noout -subject)
+    if [ $? -eq 0 ]; then
+        echo $cap >&2
+        keytool -import -noprompt -storepass changeme -alias $file -keystore $truststore -file $file >&2
+    fi
 done
 
 kubectl \
