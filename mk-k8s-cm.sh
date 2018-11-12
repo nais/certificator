@@ -5,6 +5,7 @@
 
 pem=`mktemp`
 truststore=`mktemp`
+out=`mktemp`
 outdir=`mktemp -d`
 
 rm $truststore
@@ -27,12 +28,24 @@ for file in *; do
     fi
 done
 
-kubectl \
-    --dry-run=true \
-    --output=yaml \
-    create configmap ca-bundle \
-    --from-file=ca-bundle.pem=${pem},ca-bundle.jks=${truststore}
+cat > $out <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ca-bundle
+EOF
+
+echo "binaryData:" >> $out
+echo -n "  ca-bundle.jks: " >> $out
+base64 < $truststore >> $out
+
+echo "data:" >> $out
+echo "  ca-bundle.pem: |" >> $out
+sed -E 's/^(.*)$/    \1/g' $pem >> $out
+
+cat $out
 
 rm -rf $pem
 rm -rf $truststore
+rm -rf $out
 rm -rf $outdir
