@@ -11,7 +11,7 @@ rm $truststore
 cat - > $pem
 
 cd $outdir
-split -p "-----BEGIN CERTIFICATE-----" $pem
+csplit $pem '/-----BEGIN CERTIFICATE-----/' '{*}'
 for file in *; do
     echo "--- Processing file $file ---" >&2
     cap=$(openssl x509 -in "$file" -noout -subject)
