@@ -12,6 +12,12 @@ cat - > $pem
 
 cd $outdir
 csplit $pem '/-----BEGIN CERTIFICATE-----/' '{*}'
+
+# mac os x compatibility
+if [ $? -ne 0 ]; then
+    split -p "-----BEGIN CERTIFICATE-----" $pem
+fi
+
 for file in *; do
     echo "--- Processing file $file ---" >&2
     cap=$(openssl x509 -in "$file" -noout -subject)
