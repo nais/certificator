@@ -37,7 +37,8 @@ EOF
 
 echo "binaryData:" >> $out
 echo -n "  ca-bundle.jks: " >> $out
-base64 < $truststore >> $out
+base64 < $truststore | tr -d '\n' >> $out
+echo >> $out
 
 echo "data:" >> $out
 echo "  ca-bundle.pem: |" >> $out
