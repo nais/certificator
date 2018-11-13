@@ -12,11 +12,11 @@ rm $truststore
 cat - > $pem
 
 cd $outdir
-csplit $pem '/-----BEGIN CERTIFICATE-----/' '{*}'
+csplit $pem '/-----BEGIN CERTIFICATE-----/' '{*}' >&2
 
 # mac os x compatibility
 if [ $? -ne 0 ]; then
-    split -p "-----BEGIN CERTIFICATE-----" $pem
+    split -p "-----BEGIN CERTIFICATE-----" $pem >&2
 fi
 
 for file in *; do
