@@ -28,25 +28,34 @@ for file in *; do
     fi
 done
 
-cat > $out <<EOF
+cat > $out_cm_jks <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ca-bundle
+  name: ca-bundle-jks
 EOF
 
-echo "binaryData:" >> $out
-echo -n "  ca-bundle.jks: " >> $out
-base64 < $truststore | tr -d '\n' >> $out
-echo >> $out
+echo "binaryData:" >> $out_cm_jks
+echo -n "  ca-bundle.jks: " >> $out_cm_jks
+base64 < $truststore | tr -d '\n' >> $out_cm_jks
+echo >> $out_cm_jks
 
-echo "data:" >> $out
-echo "  ca-bundle.pem: |" >> $out
-sed -E 's/^(.*)$/    \1/g' $pem >> $out
+cat > $out_cm_pem <<EOF
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ca-bundle-pem
+EOF
 
-cat $out
+echo "data:" >> $out_cm_pem
+echo "  ca-bundle.pem: |" >> $out_cm_pem
+sed -E 's/^(.*)$/    \1/g' $pem >> $out_cm_pem
+
+cat $out_cm_jks $out_cm_pem
 
 rm -rf $pem
 rm -rf $truststore
-rm -rf $out
+rm -rf $out_cm_jks
+rm -rf $out_cm_pem
 rm -rf $outdir
