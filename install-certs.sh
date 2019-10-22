@@ -14,6 +14,8 @@ function download_certs_prod {
     dcurl "$1" "http://crl.adeo.no/crl/a01drvw064.adeo.no_NAV%20Issuing%20CA.crt"
     dcurl "$1" "http://crl.adeo.no/crl/A01DRVW006.adeo.no_NAV%20Issuing%20CA%20Intern(1).crt"
     dcurl "$1" "http://crl.adeo.no/crl/A01DRVW269.adeo.no_NAV%20Issuing%20CA%20ekstern(1).crt"
+
+    cp additional_ca_certs.pem "$1"
 }
 
 function download_certs_dev {
@@ -27,6 +29,8 @@ function download_certs_dev {
     dcurl "$1" "http://crl.test.local/crl/D26pkisub_D26%20Sub%20CA(2).crt"
     dcurl "$1" "http://crl.test.local/crl/D26DRVW050.test.local_D26%20Issuing%20CA(3).crt"
     dcurl "$1" "http://crl.test.local/crl/D26DRVW051.test.local_D26%20Issuing%20CA%20Intern(2).crt"
+
+    cp additional_ca_certs.pem "$1"
 }
 
 function usage {
