@@ -21,3 +21,7 @@ To update the file, run:
 ```
 curl --remote-name --time-cond cacert.pem https://curl.haxx.se/ca/cacert.pem
 ```
+
+# Additional CA certificates 
+
+Add PEM certificate to additional_ca_certs.cer if the certificate is not available from curl.haxx.se.
