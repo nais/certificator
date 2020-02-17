@@ -1,9 +1,8 @@
-#!/usr/bin/env sh
-
+#!/usr/bin/env bash
 function dcurl {
-    pushd "$1" > /dev/null
+    pushd "$1" > /dev/null || exit
     curl -sO "$2"
-    popd > /dev/null
+    popd > /dev/null || exit
 }
 
 function download_certs_prod {
@@ -48,7 +47,7 @@ function usage {
 
 temp_dir=$(mktemp -d)
 dest_dir=$(realpath "$1")
-mkdir -p $dest_dir
+mkdir -p "$dest_dir"
 
 case $2 in
 "prod")
@@ -74,7 +73,7 @@ esac
 
 OIFS="$IFS"
 IFS=$'\n'
-for file in `find "$temp_dir" -type f -name '*.crt' -o -type f -name '*.cer'`
+for file in "$temp_dir"/*.crt "$temp_dir"/*.cer
 do
     INFORM=pem
     if ! openssl x509 -in "$file" -noout 2>/dev/null
@@ -90,7 +89,7 @@ do
 
     new_name=$(openssl x509 -in "$file" -inform $INFORM -noout -subject | sed s/.*CN=// | tr ' ' '_' | tr -d '.')
 
-    echo installing $dest_dir/$new_name.pem from $(basename "$file")
+    echo "installing ${dest_dir}/${new_name}.pem from $(basename "$file")"
     openssl x509 -in "$file" -inform $INFORM -out "$dest_dir/$new_name.pem"
 done
 IFS="$OIFS"
