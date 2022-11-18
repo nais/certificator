@@ -12,7 +12,7 @@ import (
 
 type Config struct {
 	CAUrls                []string      `split_words:"true"`
-	CAPaths               []string      `split_words:"true"`
+	CADirectories         []string      `split_words:"true"`
 	DownloadTimeout       time.Duration `split_words:"true" default:"5s"`
 	DownloadInterval      time.Duration `split_words:"true" default:"24h"`
 	DownloadRetryInterval time.Duration `split_words:"true" default:"10m"`
@@ -41,15 +41,15 @@ func NewFromEnv() (*Config, error) {
 }
 
 func (cfg *Config) Validate() error {
-	if len(cfg.CAUrls)+len(cfg.CAPaths) == 0 {
+	if len(cfg.CAUrls)+len(cfg.CADirectories) == 0 {
 		return fmt.Errorf("no CA certificate sources configured")
 	}
-	for i, path := range cfg.CAPaths {
+	for i, path := range cfg.CADirectories {
 		path, err := filepath.Abs(path)
 		if err != nil {
 			return err
 		}
-		cfg.CAPaths[i] = path
+		cfg.CADirectories[i] = path
 		stat, err := os.Stat(path)
 		if err != nil {
 			return err

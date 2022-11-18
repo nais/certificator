@@ -21,12 +21,11 @@ func main() {
 		log.Errorf("fatal: %s", err)
 		os.Exit(1)
 	}
-	log.Infof("Clean exit.")
 }
 
 func update(ctx context.Context, cfg *config.Config) (*certbundle.Bundle, error) {
 	bundle := certbundle.New(cfg.JksPassword)
-	err := loader.BundleFromPaths(cfg.CAPaths, bundle)
+	err := loader.BundleFromPaths(cfg.CADirectories, bundle)
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +40,10 @@ func update(ctx context.Context, cfg *config.Config) (*certbundle.Bundle, error)
 }
 
 func run() error {
+	if len(os.Args) > 1 && (os.Args[1] == "-h" || os.Args[1] == "--help") {
+		return config.Usage()
+	}
+
 	cfg, err := config.NewFromEnv()
 	if err != nil {
 		return fmt.Errorf("parse configuration: %w", err)
@@ -49,8 +52,8 @@ func run() error {
 	log.SetLevel(log.Level(cfg.LogLevel))
 
 	log.Infof("Starting certificator")
-	log.Infof("Configured %d CA certificate sources", len(cfg.CAUrls)+len(cfg.CAPaths))
-	for _, src := range cfg.CAPaths {
+	log.Infof("Configured %d CA certificate sources", len(cfg.CAUrls)+len(cfg.CADirectories))
+	for _, src := range cfg.CADirectories {
 		log.Infof("File system source: %v", src)
 	}
 	for _, src := range cfg.CAUrls {
