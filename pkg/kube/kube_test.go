@@ -20,7 +20,7 @@ func bundleFromTestData() *certbundle.Bundle {
 
 	bundle := certbundle.New(password)
 
-	err = bundle.ReadAllPEM(f)
+	err = bundle.ReadAll(f)
 
 	if err != nil {
 		panic(err)

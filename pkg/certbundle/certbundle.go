@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/pavlo-v-chernykh/keystore-go"
+	log "github.com/sirupsen/logrus"
 )
 
 type Bundle struct {
@@ -25,8 +26,23 @@ func New(password string) *Bundle {
 	}
 }
 
-// Read PEM blocks from a reader until there are none left. Consumes all the data from the reader.
-func (bundle *Bundle) ReadAllPEM(r io.Reader) error {
+func decode(data []byte) ([]byte, *x509.Certificate, error) {
+	block, rest := pem.Decode(data)
+	if block != nil {
+		cert, err := x509.ParseCertificate(block.Bytes)
+		return rest, cert, err
+	}
+
+	if len(rest) > 0 {
+		cert, err := x509.ParseCertificate(rest)
+		return nil, cert, err
+	}
+
+	return nil, nil, nil
+}
+
+// Read PEM blocks or DER certificate from a reader until there are none left. Consumes all the data from the reader.
+func (bundle *Bundle) ReadAll(r io.Reader) error {
 	buf := &bytes.Buffer{}
 	_, err := io.Copy(buf, r)
 	if err != nil {
@@ -36,17 +52,15 @@ func (bundle *Bundle) ReadAllPEM(r io.Reader) error {
 	data := buf.Bytes()
 	certs := make([]*x509.Certificate, 0)
 	for {
-		var block *pem.Block
-		block, data = pem.Decode(data)
-		if block == nil {
-			break
-		}
-
-		cert, err := toCert(block)
+		var cert *x509.Certificate
+		data, cert, err = decode(data)
 		if err != nil {
 			return err
 		}
-
+		if cert == nil {
+			break
+		}
+		log.Debugf("Importing %s", cert.Subject.String())
 		certs = append(certs, cert)
 	}
 
