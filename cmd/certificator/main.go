@@ -9,6 +9,7 @@ import (
 
 	"github.com/nais/certificator/pkg/certbundle"
 	"github.com/nais/certificator/pkg/config"
+	"github.com/nais/certificator/pkg/kube"
 	"github.com/nais/certificator/pkg/loader"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -40,8 +41,6 @@ func update(ctx context.Context, cfg *config.Config) (*certbundle.Bundle, error)
 }
 
 func run() error {
-	var bundle *certbundle.Bundle
-
 	cfg, err := config.NewFromEnv()
 	if err != nil {
 		return fmt.Errorf("parse configuration: %w", err)
@@ -58,27 +57,49 @@ func run() error {
 		log.Infof("Remote URL source: %v", src)
 	}
 
+	clientset, err := kube.Client()
+	if err != nil {
+		return fmt.Errorf("init kubernetes client: %w", err)
+	}
+
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT)
 	defer cancel()
 
 	downloadTimer := time.NewTimer(1 * time.Millisecond)
+	bundleTimer := time.NewTimer(time.Hour)
+	bundleTimer.Stop()
+
+	var bundle *certbundle.Bundle
 
 	for ctx.Err() == nil {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil
+		case <-bundleTimer.C:
+			log.Infof("Applying CA certificate bundle to Kubernetes")
+			err = kube.Apply(ctx, clientset, bundle)
+			if err == nil {
+				log.Warnf("Certificate bundle applied to Kubernetes namespaces successfully")
+				bundleTimer.Stop()
+				continue
+			}
+			log.Errorf("Apply certificate bundle to Kubernetes: %s", err)
+			log.Debugf("Sleeping %s before next attempt", cfg.ApplyBackoff)
+			bundleTimer.Reset(cfg.ApplyBackoff)
 		case <-downloadTimer.C:
 			bundle, err = update(ctx, cfg)
 			if err == nil {
-				downloadTimer.Reset(cfg.DownloadInterval)
 				log.Warnf("Refreshed certificate list from external sources with %d entries", bundle.Len())
+				downloadTimer.Reset(cfg.DownloadInterval)
+				log.Debugf("Next refresh in %s", cfg.DownloadInterval)
+				bundleTimer.Reset(time.Millisecond)
 			} else {
-				downloadTimer.Reset(cfg.DownloadRetryInterval)
 				log.Errorf("Refresh certificate list: %s", err)
-				log.Debugf("Next attempt at refresh at %s", time.Now().Add(cfg.DownloadRetryInterval))
+				downloadTimer.Reset(cfg.DownloadRetryInterval)
+				log.Debugf("Next attempt at refresh in %s", cfg.DownloadRetryInterval)
 			}
 		}
 	}
 
-	return ctx.Err()
+	return nil
 }

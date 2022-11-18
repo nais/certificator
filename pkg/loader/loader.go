@@ -14,10 +14,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Well-known default password for JKS format.
-// Bundle does not contain any private data, so this is fine.
-const password = "changeme"
-
 // Download some content and copy it into an io.Reader buffer.
 func download(ctx context.Context, url string) (io.Reader, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)

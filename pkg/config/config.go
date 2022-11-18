@@ -16,6 +16,7 @@ type Config struct {
 	DownloadTimeout       time.Duration `split_words:"true" default:"5s"`
 	DownloadInterval      time.Duration `split_words:"true" default:"24h"`
 	DownloadRetryInterval time.Duration `split_words:"true" default:"10m"`
+	ApplyBackoff          time.Duration `split_words:"true" default:"5m"`
 	JksPassword           string        `split_words:"true" default:"changeme" required:"true"`
 	LogLevel              LogLevel      `split_words:"true" default:"debug" required:"true"`
 }
