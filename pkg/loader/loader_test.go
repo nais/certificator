@@ -1,11 +1,11 @@
-package fetcher_test
+package loader_test
 
 import (
 	"testing"
 	"time"
 
 	"github.com/nais/certificator/pkg/certbundle"
-	"github.com/nais/certificator/pkg/fetcher"
+	"github.com/nais/certificator/pkg/loader"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -18,7 +18,7 @@ func TestMakeCertificateBundle(t *testing.T) {
 	defer cancel()
 
 	bundle := certbundle.New(password)
-	err := fetcher.BundleFromURLs(ctx, bundle, []string{
+	err := loader.BundleFromURLs(ctx, bundle, []string{
 		"https://curl.se/ca/cacert.pem",
 	})
 
@@ -32,7 +32,7 @@ func TestBundleFromPaths(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
 
 	bundle := certbundle.New(password)
-	err := fetcher.BundleFromPaths([]string{"../../testdata/static"}, bundle)
+	err := loader.BundleFromPaths([]string{"../../testdata/static"}, bundle)
 	assert.NoError(t, err)
 	assert.True(t, len(bundle.Certificates()) > 0)
 

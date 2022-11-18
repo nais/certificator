@@ -1,4 +1,4 @@
-package fetcher
+package loader
 
 import (
 	"bytes"
@@ -93,7 +93,7 @@ func BundleFromPaths(paths []string, bundle *certbundle.Bundle) error {
 		if err != nil {
 			return err
 		}
-		log.Debugf("Looking for certificates in %s", directory)
+		log.Infof("Scanning directory %s", directory)
 		entries, err := os.ReadDir(directory)
 		if err != nil {
 			return err
@@ -103,7 +103,7 @@ func BundleFromPaths(paths []string, bundle *certbundle.Bundle) error {
 				continue
 			}
 			path := filepath.Join(directory, entry.Name())
-			log.Infof("Importing certificates from %s", path)
+			log.Infof("Load %s", path)
 			f, err := os.Open(path)
 			if err != nil {
 				return err

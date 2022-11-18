@@ -114,9 +114,8 @@ func (bundle *Bundle) Certificates() []*x509.Certificate {
 	return result
 }
 
-// Convert a PEM block to a certificate.
-func toCert(block *pem.Block) (*x509.Certificate, error) {
-	return x509.ParseCertificate(block.Bytes)
+func (bundle *Bundle) Len() int {
+	return len(bundle.certs)
 }
 
 // Generate a keytool compatible alias for a certificate.
