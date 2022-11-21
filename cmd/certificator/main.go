@@ -79,8 +79,10 @@ func run() error {
 		case <-ctx.Done():
 			return nil
 		case <-bundleTimer.C:
+			ac, acc := context.WithTimeout(ctx, cfg.ApplyTimeout)
 			log.Infof("Applying CA certificate bundle to Kubernetes")
-			err = kube.Apply(ctx, clientset, bundle)
+			err = kube.Apply(ac, clientset, bundle)
+			acc()
 			if err == nil {
 				log.Warnf("Certificate bundle applied to Kubernetes namespaces successfully")
 				bundleTimer.Stop()
