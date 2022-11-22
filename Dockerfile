@@ -4,7 +4,7 @@ ENV GOOS=linux
 COPY . /src
 WORKDIR /src
 RUN make test
-RUN make alpine
+RUN make certificator
 
 FROM alpine:3
 RUN apk add --no-cache ca-certificates tzdata

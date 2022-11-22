@@ -6,7 +6,7 @@ LDFLAGS := -X github.com/nais/certificator/pkg/version.Revision=$(LAST_COMMIT) -
 .PHONY: certificator test check alpine docker
 
 certificator:
-	go build -o bin/certificator cmd/certificator/*.go
+	go build -o bin/certificator -ldflags "-s $(LDFLAGS)" cmd/certificator/*.go
 
 test:
 	go test -count 1 -v ./...
@@ -14,9 +14,6 @@ test:
 check:
 	go run honnef.co/go/tools/cmd/staticcheck ./...
 	go run golang.org/x/vuln/cmd/govulncheck -v ./...
-
-alpine:
-	go build -o bin/certificator -ldflags "-s $(LDFLAGS)" cmd/certificator/main.go
 
 docker:
 	docker build -t ghcr.io/nais/certificator:latest .
