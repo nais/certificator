@@ -22,8 +22,8 @@ const pemFilename = "ca-bundle.pem"
 const jksFilename = "ca-bundle.jks"
 
 // Kubernetes CM names
-const pemResourceName = "certificator-pem"
-const jksResourceName = "certificator-jks"
+const pemResourceName = "ca-bundle-pem"
+const jksResourceName = "ca-bundle-jks"
 
 // Commit certificate bundle into all team namespaces
 const namespaceSelector = "team"
