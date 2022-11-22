@@ -11,6 +11,7 @@ import (
 	"github.com/nais/certificator/pkg/config"
 	"github.com/nais/certificator/pkg/kube"
 	"github.com/nais/certificator/pkg/loader"
+	"github.com/nais/certificator/pkg/version"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
@@ -51,8 +52,10 @@ func run() error {
 
 	log.SetLevel(log.Level(cfg.LogLevel))
 
-	log.Infof("Starting certificator")
+	buildTime, _ := version.BuildTime()
+	log.Infof("Certificator %s built on %s", version.Version(), buildTime)
 	log.Infof("Configured %d CA certificate sources", len(cfg.CAUrls)+len(cfg.CADirectories))
+
 	for _, src := range cfg.CADirectories {
 		log.Infof("File system source: %v", src)
 	}
@@ -64,6 +67,8 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("init kubernetes client: %w", err)
 	}
+
+	log.Infof("Configuration complete, starting application.")
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT)
 	defer cancel()
@@ -77,10 +82,11 @@ func run() error {
 	for ctx.Err() == nil {
 		select {
 		case <-ctx.Done():
+			log.Infof("Received signal, shutting down.")
 			return nil
 		case <-bundleTimer.C:
 			ac, acc := context.WithTimeout(ctx, cfg.ApplyTimeout)
-			log.Infof("Applying CA certificate bundle to Kubernetes")
+			log.Infof("Applying CA certificate bundle to Kubernetes, timeout %s", cfg.ApplyTimeout)
 			err = kube.Apply(ac, clientset, bundle)
 			acc()
 			if err == nil {
