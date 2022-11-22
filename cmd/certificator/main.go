@@ -50,6 +50,7 @@ func run() error {
 		return fmt.Errorf("parse configuration: %w", err)
 	}
 
+	log.SetFormatter(cfg.LogFormat.Formatter)
 	log.SetLevel(log.Level(cfg.LogLevel))
 
 	buildTime, _ := version.BuildTime()

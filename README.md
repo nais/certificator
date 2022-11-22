@@ -19,10 +19,13 @@ The cached certificates are then persisted into all eligible Kubernetes namespac
 | CERTIFICATOR_APPLY_BACKOFF           | Duration                       | 5m       |
 | CERTIFICATOR_APPLY_TIMEOUT           | Duration                       | 10s      |
 | CERTIFICATOR_JKS_PASSWORD            | String                         | changeme |
+| CERTIFICATOR_LOG_FORMAT              | LogFormat                      | text     |
 | CERTIFICATOR_LOG_LEVEL               | LogLevel                       | debug    |
 
 It is recommended to add the [Mozilla certificate store](https://curl.se/ca/cacert.pem)
 as one of the URLs. See [CA Extract](https://curl.se/docs/caextract.html) for details.
+
+Run `certificator --help` for more information.
 
 ## Why
 
