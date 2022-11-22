@@ -1,27 +1,39 @@
-NAV CA Bundle
-=============
+Certificator
+============
 
-Fetches production and test certificates and converts them to PEM to the specified dir.
+Certificator is a daemon that maintains CA bundles as Kubernetes configmaps.
 
-# Usage
+At regular intervals, Certificator will load PEM or DER data from specified URLs and directories.
+The certificate data will be validated for correctness, and added to a cache.
+The cached certificates are then persisted into all eligible Kubernetes namespaces.
 
-```
-sudo ./install-certs.sh /etc/pki/ca-trust/source/anchors
-sudo update-ca-trust
-```
+## Configuration
 
-# Mozilla CA certificate bundle
+| Environment variable                 | Type                           | Default  |
+|--------------------------------------|--------------------------------|----------|
+| CERTIFICATOR_CA_URLS                 | Comma-separated list of String |          |
+| CERTIFICATOR_CA_DIRECTORIES          | Comma-separated list of String |          |
+| CERTIFICATOR_DOWNLOAD_TIMEOUT        | Duration                       | 5s       |
+| CERTIFICATOR_DOWNLOAD_INTERVAL       | Duration                       | 24h      |
+| CERTIFICATOR_DOWNLOAD_RETRY_INTERVAL | Duration                       | 10m      |
+| CERTIFICATOR_APPLY_BACKOFF           | Duration                       | 5m       |
+| CERTIFICATOR_APPLY_TIMEOUT           | Duration                       | 10s      |
+| CERTIFICATOR_JKS_PASSWORD            | String                         | changeme |
+| CERTIFICATOR_LOG_LEVEL               | LogLevel                       | debug    |
 
-This is a collection of CA certificates included with Mozilla Firefox.
-See https://curl.haxx.se/docs/caextract.html.
+It is recommended to add the [Mozilla certificate store](https://curl.se/ca/cacert.pem)
+as one of the URLs. See [CA Extract](https://curl.se/docs/caextract.html) for details.
 
-The file is cached in this repository as `cacert.pem`.
+## Why
 
-To update the file, run:
-```
-curl --remote-name --time-cond cacert.pem https://curl.haxx.se/ca/cacert.pem
-```
+Certain legacy services at NAV use certificates signed by an internal certificate authority.
+These CA certificates are not included in any Linux distribution. Thus, when building a Docker image,
+the author must include these certificates manually in order to speak securely to said services. 
+The role of Certificator is to remove this inconvenience.
 
-# Additional CA certificates 
+By bundling upstream CA certificates together with these internal NAV certificates, Certificator
+creates a new bundle that can be mounted into the pods directly.
+[Naiserator mounts these files automatically](https://github.com/nais/naiserator/blob/master/pkg/resourcecreator/certificateauthority/certificateauthority.go).
 
-Add PEM certificate to additional_ca_certs.cer if the certificate is not available from curl.haxx.se.
+Furthermore, Certificator exposes the certificate bundles both in PEM format,
+and also Java Keystore format, suitable for Java applications.
