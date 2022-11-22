@@ -32,7 +32,7 @@ func TestBundleFromPaths(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
 
 	bundle := certbundle.New(password)
-	err := loader.BundleFromPaths([]string{"../../testdata/static"}, bundle)
+	err := loader.BundleFromPaths([]string{"../../testdata"}, bundle)
 	assert.NoError(t, err)
 	assert.True(t, len(bundle.Certificates()) > 0)
 

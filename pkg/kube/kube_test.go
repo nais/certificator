@@ -1,12 +1,12 @@
 package kube_test
 
 import (
-	"encoding/json"
 	"os"
 	"testing"
 
 	"github.com/nais/certificator/pkg/certbundle"
 	"github.com/nais/certificator/pkg/kube"
+	"github.com/stretchr/testify/assert"
 )
 
 const password = "foobar"
@@ -37,17 +37,7 @@ func TestConfigMapPEM(t *testing.T) {
 		panic(err)
 	}
 
-	out, err := os.CreateTemp(os.TempDir(), "configmap-pem-")
-	if err != nil {
-		panic(err)
-	}
-	defer out.Close()
-
-	enc := json.NewEncoder(out)
-	enc.SetIndent("", "  ")
-	enc.Encode(cm)
-
-	t.Logf("ConfigMap written to %s", out.Name())
+	assert.NotEmpty(t, cm.BinaryData)
 }
 
 func TestConfigMapJKS(t *testing.T) {
@@ -58,15 +48,5 @@ func TestConfigMapJKS(t *testing.T) {
 		panic(err)
 	}
 
-	out, err := os.CreateTemp(os.TempDir(), "configmap-jks-")
-	if err != nil {
-		panic(err)
-	}
-	defer out.Close()
-
-	enc := json.NewEncoder(out)
-	enc.SetIndent("", "  ")
-	enc.Encode(cm)
-
-	t.Logf("ConfigMap written to %s", out.Name())
+	assert.NotEmpty(t, cm.BinaryData)
 }

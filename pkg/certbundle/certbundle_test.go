@@ -1,6 +1,7 @@
 package certbundle_test
 
 import (
+	"bytes"
 	"os"
 	"testing"
 
@@ -28,37 +29,23 @@ func bundleFromTestData() *certbundle.Bundle {
 	return bundle
 }
 
-func TestReadAllPEM(t *testing.T) {
-	bundle := bundleFromTestData()
-
-	for _, cert := range bundle.Certificates() {
-		t.Logf("CA=%v %v", cert.IsCA, cert.Subject)
-	}
-}
-
 func TestWrite(t *testing.T) {
 	const password = "foobar"
 
 	bundle := bundleFromTestData()
-
-	jksout, err := os.CreateTemp(os.TempDir(), "jks-")
-	if err != nil {
-		panic(err)
+	for _, cert := range bundle.Certificates() {
+		t.Logf("CA=%v %v", cert.IsCA, cert.Subject)
 	}
-	defer jksout.Close()
 
-	pemout, err := os.CreateTemp(os.TempDir(), "pem-")
-	if err != nil {
-		panic(err)
-	}
-	defer pemout.Close()
+	jksout := &bytes.Buffer{}
+	pemout := &bytes.Buffer{}
 
-	err = bundle.WriteJKS(jksout)
+	err := bundle.WriteJKS(jksout)
 	assert.NoError(t, err)
 
 	err = bundle.WritePEM(pemout)
 	assert.NoError(t, err)
 
-	t.Logf("JKS certificates with password %q encoded into %s", password, jksout.Name())
-	t.Logf("PEM certificates encoded into %s", jksout.Name())
+	t.Logf("JKS bundle with password %q encoded into memory", password)
+	t.Logf("PEM bundle encoded into memory")
 }
