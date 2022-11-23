@@ -9,18 +9,19 @@ The cached certificates are then persisted into all eligible Kubernetes namespac
 
 ## Configuration
 
-| Environment variable                 | Type                           | Default  |
-|--------------------------------------|--------------------------------|----------|
-| CERTIFICATOR_CA_URLS                 | Comma-separated list of String |          |
-| CERTIFICATOR_CA_DIRECTORIES          | Comma-separated list of String |          |
-| CERTIFICATOR_DOWNLOAD_TIMEOUT        | Duration                       | 5s       |
-| CERTIFICATOR_DOWNLOAD_INTERVAL       | Duration                       | 24h      |
-| CERTIFICATOR_DOWNLOAD_RETRY_INTERVAL | Duration                       | 10m      |
-| CERTIFICATOR_APPLY_BACKOFF           | Duration                       | 5m       |
-| CERTIFICATOR_APPLY_TIMEOUT           | Duration                       | 10s      |
-| CERTIFICATOR_JKS_PASSWORD            | String                         | changeme |
-| CERTIFICATOR_LOG_FORMAT              | LogFormat                      | text     |
-| CERTIFICATOR_LOG_LEVEL               | LogLevel                       | debug    |
+| Environment variable                 | Type                           | Default        |
+|--------------------------------------|--------------------------------|----------------|
+| CERTIFICATOR_CA_URLS                 | Comma-separated list of String |                |
+| CERTIFICATOR_CA_DIRECTORIES          | Comma-separated list of String |                |
+| CERTIFICATOR_DOWNLOAD_TIMEOUT        | Duration                       | 5s             |
+| CERTIFICATOR_DOWNLOAD_INTERVAL       | Duration                       | 24h            |
+| CERTIFICATOR_DOWNLOAD_RETRY_INTERVAL | Duration                       | 10m            |
+| CERTIFICATOR_APPLY_BACKOFF           | Duration                       | 5m             |
+| CERTIFICATOR_APPLY_TIMEOUT           | Duration                       | 10s            |
+| CERTIFICATOR_JKS_PASSWORD            | String                         | changeme       |
+| CERTIFICATOR_LOG_FORMAT              | LogFormat                      | text           |
+| CERTIFICATOR_LOG_LEVEL               | LogLevel                       | debug          |
+| CERTIFICATOR_METRICS_ADDRESS         | String                         | 127.0.0.1:8080 |
 
 It is recommended to add the [Mozilla certificate store](https://curl.se/ca/cacert.pem)
 as one of the URLs. See [CA Extract](https://curl.se/docs/caextract.html) for details.

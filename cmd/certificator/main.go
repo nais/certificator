@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,7 +12,9 @@ import (
 	"github.com/nais/certificator/pkg/config"
 	"github.com/nais/certificator/pkg/kube"
 	"github.com/nais/certificator/pkg/loader"
+	"github.com/nais/certificator/pkg/metrics"
 	"github.com/nais/certificator/pkg/version"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
@@ -78,6 +81,15 @@ func run() error {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT)
 	defer cancel()
 
+	go func() {
+		log.Infof("Starting metrics server at %s", cfg.MetricsAddress)
+		err := http.ListenAndServe(cfg.MetricsAddress, promhttp.Handler())
+		if err != nil {
+			log.Errorf("Metrics server shut down: %s", err)
+			cancel()
+		}
+	}()
+
 	downloadTimer := time.NewTimer(1 * time.Millisecond)
 	bundleTimer := time.NewTimer(time.Hour)
 	bundleTimer.Stop()
@@ -114,6 +126,7 @@ func run() error {
 			if watchedNamespace.Deleted {
 				log.Warnf("Namespace %q deleted; removed from update candidates.", watchedNamespace.Name)
 				delete(namespaces, watchedNamespace.Name)
+				metrics.SetTotalNamespaces(len(namespaces))
 				continue
 			}
 			namespace, ok := namespaces[watchedNamespace.Name]
@@ -123,6 +136,7 @@ func run() error {
 			}
 			log.Debugf("Namespace %q added to update candidates.", watchedNamespace.Name)
 			namespaces[watchedNamespace.Name] = watchedNamespace
+			metrics.SetTotalNamespaces(len(namespaces))
 			bundleTimer.Reset(time.Millisecond)
 
 		case <-bundleTimer.C:
@@ -132,6 +146,7 @@ func run() error {
 				continue
 			}
 			candidates := namespaces.UnsuccessfulSince(bundle.ChangedAt())
+			metrics.SetPendingNamespaces(len(candidates))
 			if len(candidates) == 0 {
 				log.Debugf("No namespaces in need of new CA certificate bundle")
 				bundleTimer.Stop()
@@ -142,10 +157,14 @@ func run() error {
 			err = kube.Apply(ac, clientset, bundle, candidates)
 			acc()
 			if err == nil {
+				metrics.SetPendingNamespaces(0)
+				metrics.IncSync(0)
 				log.Warnf("Certificate bundle applied to Kubernetes namespaces successfully")
 				bundleTimer.Stop()
 				continue
 			}
+			metrics.SetPendingNamespaces(len(namespaces.UnsuccessfulSince(bundle.ChangedAt())))
+			metrics.IncSync(1)
 			log.Errorf("Apply certificate bundle to Kubernetes: %s", err)
 			log.Debugf("Sleeping %s before next attempt", cfg.ApplyBackoff)
 			bundleTimer.Reset(cfg.ApplyBackoff)
@@ -154,11 +173,14 @@ func run() error {
 			// Refresh the certificate bundle.
 			bundle, err = update(ctx, cfg)
 			if err == nil {
+				metrics.SetCertificates(bundle.Len())
+				metrics.IncRefresh(0)
 				log.Warnf("Refreshed certificate list from external sources with %d entries", bundle.Len())
 				downloadTimer.Reset(cfg.DownloadInterval)
 				log.Debugf("Next refresh in %s", cfg.DownloadInterval)
 				bundleTimer.Reset(time.Millisecond)
 			} else {
+				metrics.IncRefresh(1)
 				log.Errorf("Refresh certificate list: %s", err)
 				downloadTimer.Reset(cfg.DownloadRetryInterval)
 				log.Debugf("Next attempt at refresh in %s", cfg.DownloadRetryInterval)

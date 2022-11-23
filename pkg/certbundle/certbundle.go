@@ -121,6 +121,9 @@ func (bundle *Bundle) Len() int {
 }
 
 func (bundle *Bundle) ChangedAt() time.Time {
+	if bundle == nil {
+		return time.Time{}
+	}
 	return bundle.changedAt
 }
 

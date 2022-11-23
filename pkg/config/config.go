@@ -21,6 +21,7 @@ type Config struct {
 	JksPassword           string        `split_words:"true" default:"changeme" required:"true"`
 	LogFormat             LogFormat     `split_words:"true" default:"text" required:"true"`
 	LogLevel              LogLevel      `split_words:"true" default:"debug" required:"true"`
+	MetricsAddress        string        `split_words:"true" default:"127.0.0.1:8080"`
 }
 
 type LogFormat struct {
