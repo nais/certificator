@@ -28,6 +28,9 @@ const jksResourceName = "ca-bundle-jks"
 // Commit certificate bundle into all team namespaces
 const namespaceSelector = "team"
 
+// Backoff time per apply
+const retryBackoff = time.Second * 3
+
 type PEMWriter interface {
 	WritePEM(w io.Writer) error
 }
@@ -99,13 +102,13 @@ func applyWithRetry(ctx context.Context, client *kubernetes.Clientset, namespace
 			return nil
 		}
 		log.Errorf("Failed to apply %q to namespace %q: %s", resource.Name, namespace, err)
-		time.Sleep(3 * time.Second)
+		time.Sleep(retryBackoff)
 	}
 
 	return ctx.Err()
 }
 
-func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWriter) error {
+func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWriter, namespaces Namespaces) error {
 	jks, err := ConfigMapJKS(bundle)
 	if err != nil {
 		return err
@@ -116,29 +119,32 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 		return err
 	}
 
-	namespaces, err := client.CoreV1().Namespaces().List(ctx, metav1.ListOptions{
-		LabelSelector: namespaceSelector,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	log.Debugf("Applying certificate bundles to %d team namespaces", len(namespaces.Items))
+	log.Debugf("Applying certificate bundles to %d team namespaces", len(namespaces))
 
 	wg := &sync.WaitGroup{}
-	errs := make(chan error, len(namespaces.Items)*2+1)
+	errs := make(chan error, len(namespaces)*2+1)
 
-	for _, namespace := range namespaces.Items {
+	apply := func(ns *Namespace, cm *v1.ConfigMap) {
+		var err error
+		// error injection
+		if ns.Name == "kimfoo" {
+			err = fmt.Errorf("injection")
+		} else {
+			err = applyWithRetry(ctx, client, ns.Name, pem)
+		}
+		if err == nil {
+			ns.LastSuccess = time.Now()
+		} else {
+			ns.LastFailure = time.Now()
+			errs <- err
+		}
+		wg.Done()
+	}
+
+	for _, namespace := range namespaces {
 		wg.Add(2)
-		go func(ns string) {
-			errs <- applyWithRetry(ctx, client, ns, pem)
-			wg.Done()
-		}(namespace.Name)
-		go func(ns string) {
-			errs <- applyWithRetry(ctx, client, ns, jks)
-			wg.Done()
-		}(namespace.Name)
+		go apply(namespace, pem)
+		go apply(namespace, jks)
 	}
 
 	log.Debugf("Waiting for goroutines to finish applying...")
@@ -146,12 +152,9 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 	wg.Wait()
 	close(errs)
 
-	errorCount := 0
+	errorCount := len(errs)
 	for err = range errs {
-		if err == nil {
-			continue
-		}
-		errorCount++
+		log.Errorf("Apply to Kubernetes: %s", err)
 	}
 
 	if errorCount > 0 {

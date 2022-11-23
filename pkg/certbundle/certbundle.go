@@ -15,8 +15,9 @@ import (
 )
 
 type Bundle struct {
-	certs    []*x509.Certificate
-	password string
+	certs     []*x509.Certificate
+	password  string
+	changedAt time.Time
 }
 
 func New(password string) *Bundle {
@@ -65,6 +66,7 @@ func (bundle *Bundle) ReadAll(r io.Reader) error {
 	}
 
 	bundle.certs = append(bundle.certs, certs...)
+	bundle.changedAt = time.Now()
 
 	return nil
 }
@@ -116,6 +118,10 @@ func (bundle *Bundle) Certificates() []*x509.Certificate {
 
 func (bundle *Bundle) Len() int {
 	return len(bundle.certs)
+}
+
+func (bundle *Bundle) ChangedAt() time.Time {
+	return bundle.changedAt
 }
 
 // Generate a keytool compatible alias for a certificate.
