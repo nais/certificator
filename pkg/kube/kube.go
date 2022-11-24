@@ -125,13 +125,7 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 	errs := make(chan error, len(namespaces)*2+1)
 
 	apply := func(ns *Namespace, cm *v1.ConfigMap) {
-		var err error
-		// error injection
-		if ns.Name == "kimfoo" {
-			err = fmt.Errorf("injection")
-		} else {
-			err = applyWithRetry(ctx, client, ns.Name, pem)
-		}
+		err := applyWithRetry(ctx, client, ns.Name, cm)
 		if err == nil {
 			ns.LastSuccess = time.Now()
 		} else {
