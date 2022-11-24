@@ -104,7 +104,6 @@ func run() error {
 			} else {
 				log.Errorf("Kubernetes namespace watcher stopped.")
 			}
-			close(namespaceWatcher)
 		}()
 	}
 
