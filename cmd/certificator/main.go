@@ -98,7 +98,7 @@ func run() error {
 		namespaceWatcher = make(chan *kube.Namespace, 1024)
 		go func() {
 			log.Infof("Starting Kubernetes namespace watcher.")
-			err := kube.Watch(ctx, clientset, namespaceWatcher)
+			err := kube.Watch(ctx, clientset, cfg.NamespaceLabelSelector, namespaceWatcher)
 			if err != nil {
 				log.Errorf("Init Kubernetes namespace watcher: %s", err)
 			} else {

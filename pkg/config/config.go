@@ -11,17 +11,18 @@ import (
 )
 
 type Config struct {
-	CAUrls                []string      `split_words:"true"`
-	CADirectories         []string      `split_words:"true"`
-	DownloadTimeout       time.Duration `split_words:"true" default:"5s"`
-	DownloadInterval      time.Duration `split_words:"true" default:"24h"`
-	DownloadRetryInterval time.Duration `split_words:"true" default:"10m"`
-	ApplyBackoff          time.Duration `split_words:"true" default:"5m"`
-	ApplyTimeout          time.Duration `split_words:"true" default:"10s"`
-	JksPassword           string        `split_words:"true" default:"changeme" required:"true"`
-	LogFormat             LogFormat     `split_words:"true" default:"text" required:"true"`
-	LogLevel              LogLevel      `split_words:"true" default:"debug" required:"true"`
-	MetricsAddress        string        `split_words:"true" default:"127.0.0.1:8080"`
+	CAUrls                 []string      `split_words:"true"`
+	CADirectories          []string      `split_words:"true"`
+	DownloadTimeout        time.Duration `split_words:"true" default:"5s"`
+	DownloadInterval       time.Duration `split_words:"true" default:"24h"`
+	DownloadRetryInterval  time.Duration `split_words:"true" default:"10m"`
+	ApplyBackoff           time.Duration `split_words:"true" default:"5m"`
+	ApplyTimeout           time.Duration `split_words:"true" default:"10s"`
+	JksPassword            string        `split_words:"true" default:"changeme" required:"true"`
+	LogFormat              LogFormat     `split_words:"true" default:"text" required:"true"`
+	LogLevel               LogLevel      `split_words:"true" default:"debug" required:"true"`
+	MetricsAddress         string        `split_words:"true" default:"127.0.0.1:8080"`
+	NamespaceLabelSelector string        `split_words:"true" default:"team"`
 }
 
 type LogFormat struct {

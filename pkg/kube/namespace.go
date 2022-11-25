@@ -30,11 +30,11 @@ func (namespaces Namespaces) UnsuccessfulSince(t time.Time) Namespaces {
 	return result
 }
 
-func Watch(ctx context.Context, client *kubernetes.Clientset, namespaces chan<- *Namespace) error {
+func Watch(ctx context.Context, client *kubernetes.Clientset, labelSelector string, namespaces chan<- *Namespace) error {
 	defer close(namespaces)
 
 	watcher, err := client.CoreV1().Namespaces().Watch(ctx, metav1.ListOptions{
-		LabelSelector:   namespaceSelector,
+		LabelSelector:   labelSelector,
 		ResourceVersion: "0",
 	})
 

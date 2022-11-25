@@ -25,9 +25,6 @@ const jksFilename = "ca-bundle.jks"
 const pemResourceName = "ca-bundle-pem"
 const jksResourceName = "ca-bundle-jks"
 
-// Commit certificate bundle into all team namespaces
-const namespaceSelector = "team"
-
 // Backoff time per apply
 const retryBackoff = time.Second * 3
 
