@@ -2,6 +2,7 @@ package certbundle
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
@@ -118,6 +119,20 @@ func (bundle *Bundle) Certificates() []*x509.Certificate {
 
 func (bundle *Bundle) Len() int {
 	return len(bundle.certs)
+}
+
+func (bundle *Bundle) Hash() []byte {
+	hasher := sha256.New()
+	for _, cert := range bundle.certs {
+		hasher.Write(cert.Raw)
+	}
+	return hasher.Sum(nil)
+}
+
+func (bundle *Bundle) Equal(b *Bundle) bool {
+	h1 := bundle.Hash()
+	h2 := b.Hash()
+	return bytes.Equal(h1, h2)
 }
 
 func (bundle *Bundle) ChangedAt() time.Time {

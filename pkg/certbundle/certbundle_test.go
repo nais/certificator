@@ -2,6 +2,7 @@ package certbundle_test
 
 import (
 	"bytes"
+	"encoding/hex"
 	"os"
 	"testing"
 
@@ -48,4 +49,31 @@ func TestWrite(t *testing.T) {
 
 	t.Logf("JKS bundle with password %q encoded into memory", password)
 	t.Logf("PEM bundle encoded into memory")
+}
+
+func TestEqual(t *testing.T) {
+	const expectedHash = "d0a2624c7600d1a72e9b4a3c7c2d8d8b2202283789de3cd98d64d80f9cc0ba68"
+
+	b1 := bundleFromTestData()
+	b2 := bundleFromTestData()
+
+	assert.Equal(t, expectedHash, hex.EncodeToString(b1.Hash()))
+	assert.Equal(t, expectedHash, hex.EncodeToString(b2.Hash()))
+
+	assert.True(t, b1.Equal(b2))
+	assert.True(t, b2.Equal(b1))
+
+	f, err := os.Open("../../testdata/cacert.pem")
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	err = b1.ReadAll(f)
+	if err != nil {
+		panic(err)
+	}
+
+	assert.False(t, b1.Equal(b2))
+	assert.False(t, b2.Equal(b1))
 }
