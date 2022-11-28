@@ -44,7 +44,7 @@ func update(ctx context.Context, cfg *config.Config) (*certbundle.Bundle, error)
 }
 
 func run() error {
-	var bundle *certbundle.Bundle
+	var bundle, updatedBundle *certbundle.Bundle
 	var namespaceWatcher chan *kube.Namespace
 	var namespaces = make(kube.Namespaces)
 
@@ -170,13 +170,18 @@ func run() error {
 
 		case <-downloadTimer.C:
 			// Refresh the certificate bundle.
-			bundle, err = update(ctx, cfg)
+			updatedBundle, err = update(ctx, cfg)
 			if err == nil {
-				metrics.SetCertificates(bundle.Len())
 				metrics.IncRefresh(0)
-				log.Warnf("Refreshed certificate list from external sources with %d entries", bundle.Len())
+				log.Warnf("Refreshed certificate list from external sources with %d entries", updatedBundle.Len())
 				downloadTimer.Reset(cfg.DownloadInterval)
 				log.Debugf("Next refresh in %s", cfg.DownloadInterval)
+				if bundle != nil && bundle.Equal(updatedBundle) {
+					log.Warnf("Certificate bundle is exactly the same as last time, no cluster updates necessary.")
+					continue
+				}
+				bundle = updatedBundle
+				metrics.SetCertificates(bundle.Len())
 				bundleTimer.Reset(time.Millisecond)
 			} else {
 				metrics.IncRefresh(1)
