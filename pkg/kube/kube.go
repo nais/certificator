@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -102,7 +101,6 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 
 	log.Debugf("Applying certificate bundles to %d team namespaces", len(namespaces))
 
-	wg := &sync.WaitGroup{}
 	errs := make(chan error, len(namespaces)*2+1)
 
 	apply := func(ns *Namespace, cm *v1.ConfigMap) {
@@ -116,23 +114,21 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 			ns.LastFailure = time.Now()
 			errs <- er
 		}
-		wg.Done()
 	}
 
 	for _, namespace := range namespaces {
-		wg.Add(2)
-		go apply(namespace, pem)
-		go apply(namespace, jks)
+		if ctx.Err() != nil {
+			errs <- ctx.Err()
+			break
+		}
+		apply(namespace, pem)
+		apply(namespace, jks)
 	}
 
-	log.Debugf("Waiting for goroutines to finish applying...")
-
-	wg.Wait()
 	close(errs)
 
 	errorCount := len(errs)
-	for err = range errs {
-		log.Errorf("Apply to Kubernetes: %s", err)
+	for range errs {
 	}
 
 	if errorCount > 0 {
