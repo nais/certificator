@@ -89,22 +89,6 @@ func createOrUpdate(ctx context.Context, client corev1.ConfigMapInterface, resou
 	return err
 }
 
-func applyWithRetry(ctx context.Context, client *kubernetes.Clientset, namespace string, resource *v1.ConfigMap) error {
-	nsclient := client.CoreV1().ConfigMaps(namespace)
-
-	for ctx.Err() == nil {
-		err := createOrUpdate(ctx, nsclient, resource)
-		if err == nil {
-			log.Debugf("Applied %q to namespace %q", resource.Name, namespace)
-			return nil
-		}
-		log.Errorf("Failed to apply %q to namespace %q: %s", resource.Name, namespace, err)
-		time.Sleep(retryBackoff)
-	}
-
-	return ctx.Err()
-}
-
 func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWriter, namespaces Namespaces) error {
 	jks, err := ConfigMapJKS(bundle)
 	if err != nil {
@@ -122,12 +106,15 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 	errs := make(chan error, len(namespaces)*2+1)
 
 	apply := func(ns *Namespace, cm *v1.ConfigMap) {
-		err := applyWithRetry(ctx, client, ns.Name, cm)
-		if err == nil {
+		nsclient := client.CoreV1().ConfigMaps(ns.Name)
+		er := createOrUpdate(ctx, nsclient, cm)
+		if er == nil {
+			log.Debugf("Applied %q to namespace %q", cm.Name, ns.Name)
 			ns.LastSuccess = time.Now()
 		} else {
+			log.Errorf("Failed to apply %q to namespace %q: %s", cm.Name, ns.Name, er)
 			ns.LastFailure = time.Now()
-			errs <- err
+			errs <- er
 		}
 		wg.Done()
 	}
