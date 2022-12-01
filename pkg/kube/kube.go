@@ -15,6 +15,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 )
 
 // Kubernetes CM data keys, i.e. filename in pod
@@ -89,7 +92,7 @@ func createOrUpdate(ctx context.Context, client corev1.ConfigMapInterface, resou
 	return err
 }
 
-func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWriter, namespaces Namespaces) error {
+func GenerateApplyOperations(ctx context.Context, client *kubernetes.Clientset, bundle BundleWriter, namespaces Namespaces, applies chan func() error) error {
 	jks, err := ConfigMapJKS(bundle)
 	if err != nil {
 		return err
@@ -100,10 +103,7 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 		return err
 	}
 
-	errorCount := 0
-
-	apply := func(ns *Namespace, cmaps ...*v1.ConfigMap) {
-		namespaceErrors := 0
+	apply := func(ns *Namespace, cmaps ...*v1.ConfigMap) error {
 		nsclient := client.CoreV1().ConfigMaps(ns.Name)
 		for _, cm := range cmaps {
 			er := createOrUpdate(ctx, nsclient, cm)
@@ -111,30 +111,24 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 				log.Debugf("Applied %q to namespace %q", cm.Name, ns.Name)
 				metrics.IncSync(0)
 			} else {
-				log.Errorf("Failed to apply %q to namespace %q: %s", cm.Name, ns.Name, er)
 				ns.LastFailure = time.Now()
 				metrics.IncSync(1)
-				namespaceErrors++
-				errorCount++
+				return fmt.Errorf("apply %q to namespace %q: %s", cm.Name, ns.Name, er)
 			}
 		}
-		if namespaceErrors == 0 {
-			ns.LastSuccess = time.Now()
+		ns.LastSuccess = time.Now()
+		return nil
+	}
+
+	go func() {
+		log.Debugf("Generating %d team namespace Kubernetes operations", len(namespaces))
+		for _, namespace := range namespaces {
+			ns := namespace
+			applies <- func() error {
+				return apply(ns, pem, jks)
+			}
 		}
-	}
-
-	log.Debugf("Applying certificate bundles to %d team namespaces", len(namespaces))
-
-	for _, namespace := range namespaces {
-		if ctx.Err() != nil {
-			return err
-		}
-		apply(namespace, pem, jks)
-	}
-
-	if errorCount > 0 {
-		return fmt.Errorf("applying certificate bundles resulted in %d errors", errorCount)
-	}
+	}()
 
 	return nil
 }

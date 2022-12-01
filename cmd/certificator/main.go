@@ -47,6 +47,9 @@ func run() error {
 	var bundle, updatedBundle *certbundle.Bundle
 	var namespaceWatcher chan *kube.Namespace
 	var namespaces = make(kube.Namespaces)
+	var applies chan func() error
+	var applyContext context.Context
+	var applyCancel context.CancelFunc
 
 	if len(os.Args) > 1 && (os.Args[1] == "-h" || os.Args[1] == "--help") {
 		return config.Usage()
@@ -108,6 +111,8 @@ func run() error {
 	}
 
 	setupNamespaceWatch()
+	applyContext, applyCancel = context.WithTimeout(ctx, cfg.ApplyTimeout)
+	applies = make(chan func() error, 1024)
 
 	for ctx.Err() == nil {
 		select {
@@ -151,21 +156,32 @@ func run() error {
 				bundleTimer.Stop()
 				continue
 			}
-			ac, acc := context.WithTimeout(ctx, cfg.ApplyTimeout)
-			log.Infof("Applying CA certificate bundle to %d Kubernetes namespaces, timeout %s", len(candidates), cfg.ApplyTimeout)
-			err = kube.Apply(ac, clientset, bundle, candidates)
-			acc()
-			if err == nil {
-				metrics.SetPendingNamespaces(0)
-				metrics.IncSync(0)
+			applyContext, applyCancel = context.WithTimeout(ctx, cfg.ApplyTimeout)
+			log.Infof("Generating %d CA certificate bundle ConfigMap operations, timeout %s", len(candidates), cfg.ApplyTimeout)
+			err = kube.GenerateApplyOperations(applyContext, clientset, bundle, candidates, applies)
+			if err != nil {
+				log.Errorf("Failed to generate CA certificate bundles: %s", err)
+				applyCancel()
+			}
+
+		case apply := <-applies:
+			err = apply()
+			pending := len(namespaces.UnsuccessfulSince(bundle.ChangedAt()))
+			metrics.SetPendingNamespaces(pending)
+			if err != nil {
+				log.Error(err)
+			}
+			if len(applies) > 0 {
+				continue
+			}
+			applyCancel()
+			if pending == 0 {
 				log.Warnf("Certificate bundle applied to Kubernetes namespaces successfully")
 				bundleTimer.Stop()
 				continue
 			}
-			metrics.SetPendingNamespaces(len(namespaces.UnsuccessfulSince(bundle.ChangedAt())))
-			metrics.IncSync(1)
-			log.Errorf("Apply certificate bundle to Kubernetes: %s", err)
-			log.Debugf("Sleeping %s before next attempt", cfg.ApplyBackoff)
+			log.Errorf("Still have %d pending namespaces to apply certificate bundle into", pending)
+			log.Debugf("Waiting %s before next attempt", cfg.ApplyBackoff)
 			bundleTimer.Reset(cfg.ApplyBackoff)
 
 		case <-downloadTimer.C:
