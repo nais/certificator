@@ -6,6 +6,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/nais/certificator/pkg/metrics"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	v1 "k8s.io/api/core/v1"
@@ -99,9 +100,7 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 		return err
 	}
 
-	log.Debugf("Applying certificate bundles to %d team namespaces", len(namespaces))
-
-	errs := make(chan error, len(namespaces)*2+1)
+	errorCount := 0
 
 	apply := func(ns *Namespace, cm *v1.ConfigMap) {
 		nsclient := client.CoreV1().ConfigMaps(ns.Name)
@@ -109,26 +108,23 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 		if er == nil {
 			log.Debugf("Applied %q to namespace %q", cm.Name, ns.Name)
 			ns.LastSuccess = time.Now()
+			metrics.IncSync(0)
 		} else {
 			log.Errorf("Failed to apply %q to namespace %q: %s", cm.Name, ns.Name, er)
 			ns.LastFailure = time.Now()
-			errs <- er
+			metrics.IncSync(1)
+			errorCount++
 		}
 	}
+
+	log.Debugf("Applying certificate bundles to %d team namespaces", len(namespaces))
 
 	for _, namespace := range namespaces {
 		if ctx.Err() != nil {
-			errs <- ctx.Err()
-			break
+			return err
 		}
 		apply(namespace, pem)
 		apply(namespace, jks)
-	}
-
-	close(errs)
-
-	errorCount := len(errs)
-	for range errs {
 	}
 
 	if errorCount > 0 {

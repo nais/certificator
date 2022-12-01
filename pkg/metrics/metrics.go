@@ -37,7 +37,7 @@ var (
 		Namespace: namespace,
 		Subsystem: subsystem,
 		Name:      "synchronizations",
-		Help:      "Indicates how many Kubernetes synchronizations are attempted.",
+		Help:      "Indicates how many Kubernetes ConfigMap writes are attempted.",
 	}, []string{labelErrorCode})
 
 	refresh = prometheus.NewCounterVec(prometheus.CounterOpts{
