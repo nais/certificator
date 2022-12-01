@@ -102,18 +102,24 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 
 	errorCount := 0
 
-	apply := func(ns *Namespace, cm *v1.ConfigMap) {
+	apply := func(ns *Namespace, cmaps ...*v1.ConfigMap) {
+		namespaceErrors := 0
 		nsclient := client.CoreV1().ConfigMaps(ns.Name)
-		er := createOrUpdate(ctx, nsclient, cm)
-		if er == nil {
-			log.Debugf("Applied %q to namespace %q", cm.Name, ns.Name)
+		for _, cm := range cmaps {
+			er := createOrUpdate(ctx, nsclient, cm)
+			if er == nil {
+				log.Debugf("Applied %q to namespace %q", cm.Name, ns.Name)
+				metrics.IncSync(0)
+			} else {
+				log.Errorf("Failed to apply %q to namespace %q: %s", cm.Name, ns.Name, er)
+				ns.LastFailure = time.Now()
+				metrics.IncSync(1)
+				namespaceErrors++
+				errorCount++
+			}
+		}
+		if namespaceErrors == 0 {
 			ns.LastSuccess = time.Now()
-			metrics.IncSync(0)
-		} else {
-			log.Errorf("Failed to apply %q to namespace %q: %s", cm.Name, ns.Name, er)
-			ns.LastFailure = time.Now()
-			metrics.IncSync(1)
-			errorCount++
 		}
 	}
 
@@ -123,8 +129,7 @@ func Apply(ctx context.Context, client *kubernetes.Clientset, bundle BundleWrite
 		if ctx.Err() != nil {
 			return err
 		}
-		apply(namespace, pem)
-		apply(namespace, jks)
+		apply(namespace, pem, jks)
 	}
 
 	if errorCount > 0 {
