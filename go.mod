@@ -8,7 +8,7 @@ require (
 	github.com/prometheus/client_golang v1.14.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
-	golang.org/x/net v0.1.0
+	golang.org/x/net v0.7.0
 	golang.org/x/vuln v0.0.0-20221116204841-fac3670c993c
 	honnef.co/go/tools v0.2.2
 	k8s.io/api v0.22.16
@@ -51,9 +51,9 @@ require (
 	golang.org/x/mod v0.6.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220223155221-ee480838109b // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
-	golang.org/x/term v0.1.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/term v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	golang.org/x/tools v0.2.1-0.20221108172846-9474ca31d0df // indirect
 	google.golang.org/appengine v1.6.6 // indirect
