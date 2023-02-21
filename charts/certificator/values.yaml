@@ -1,6 +1,6 @@
 image:
   repository: europe-north1-docker.pkg.dev/nais-io/nais/images/certificator
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   tag: master
 resources:
   requests:
