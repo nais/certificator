@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "certificator.fullname" . }}
+  labels:
+    {{- include "certificator.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "certificator.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "certificator.selectorLabels" . | nindent 8 }}
+      annotations:
+        prometheus.io/path: "/metrics"
+        prometheus.io/scrape: "true"
+        kubectl.kubernetes.io/default-container: {{ .Chart.Name }}
+    spec:
+      serviceAccountName: {{ include "certificator.name" . }}
+      securityContext:
+        {{- if .Values.seccomp }}
+        seccompProfile:
+          type: RuntimeDefault
+        {{- end }}
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      {{- if .Values.webproxy }}
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: ca-bundle-pem
+          name: ca-bundle-pem
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: metrics
+              containerPort: 8080
+              protocol: TCP
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          {{- if .Values.webproxy }}
+          volumeMounts:
+            - mountPath: /etc/ssl/certs/ca-certificates.crt
+              name: ca-bundle-pem
+              readOnly: true
+              subPath: ca-bundle.pem
+          {{- end }}
+          env:
+            - name: CERTIFICATOR_METRICS_ADDRESS
+              value: "0.0.0.0:8080"
+            - name: CERTIFICATOR_LOG_LEVEL
+              value: "{{ .Values.logLevel }}"
+            - name: CERTIFICATOR_LOG_FORMAT
+              value: "{{ .Values.logFormat }}"
+            - name: CERTIFICATOR_CA_URLS
+              value: "{{ join "," .Values.caUrls }}"
+            - name: CERTIFICATOR_CA_DIRECTORIES
+              value: "{{ join "," .Values.caDirectories }}"
+            - name: CERTIFICATOR_DOWNLOAD_TIMEOUT
+              value: "{{ .Values.downloadTimeout }}"
+            - name: CERTIFICATOR_DOWNLOAD_INTERVAL
+              value: "{{ .Values.downloadInterval }}"
+            - name: CERTIFICATOR_DOWNLOAD_RETRY_INTERVAL
+              value: "{{ .Values.downloadRetryInterval }}"
+            - name: CERTIFICATOR_APPLY_BACKOFF
+              value: "{{ .Values.applyBackoff }}"
+            - name: CERTIFICATOR_APPLY_TIMEOUT
+              value: "{{ .Values.applyTimeout }}"
+            - name: CERTIFICATOR_JKS_PASSWORD
+              value: "{{ .Values.jksPassword }}"
+            - name: CERTIFICATOR_NAMESPACE_LABEL_SELECTOR
+              value: "{{ .Values.namespaceLabelSelector }}"
+            {{- if .Values.webproxy }}
+            - name: HTTPS_PROXY
+              value: http://webproxy.nais:8088
+            - name: NO_PROXY
+              value: localhost,127.0.0.1,10.254.0.1,.local,.adeo.no,.nav.no,.aetat.no,.devillo.no,.oera.no,.nais.io,.aivencloud.com
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

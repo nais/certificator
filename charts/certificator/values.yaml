@@ -1,0 +1,22 @@
+image:
+  repository: europe-north1-docker.pkg.dev/nais-io/nais/images/certificator
+  pullPolicy: Always
+  tag: master
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+applyBackoff: "5m"
+applyTimeout: "3m"
+caDirectories: []
+caUrls: []
+downloadInterval: "24h"
+downloadRetryInterval: "10m"
+downloadTimeout: "5s"
+jksPassword: "changeme"
+logFormat: "json"
+logLevel: "debug"
+namespaceLabelSelector: "team"
+webproxy: false
+podMonitor: true
+seccomp: true

@@ -1,0 +1,17 @@
+{{- if .Values.podMonitor }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app: {{ template "certificator.name" . }}
+    release: {{ .Release.Name }}
+  name: {{ template "certificator.name" . }}
+spec:
+  jobLabel: app.kubernetes.io/name
+  podMetricsEndpoints:
+  - path: /metrics
+    port: metrics
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "certificator.name" . }}
+{{- end }}
