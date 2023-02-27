@@ -7,7 +7,7 @@ require (
 	github.com/pavlo-v-chernykh/keystore-go v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.14.0
 	github.com/sirupsen/logrus v1.9.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	golang.org/x/net v0.3.1-0.20221206200815-1e63c2f08a10
 	golang.org/x/vuln v0.0.0-20221116204841-fac3670c993c
 	honnef.co/go/tools v0.2.2
