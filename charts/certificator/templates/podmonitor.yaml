@@ -5,6 +5,7 @@ metadata:
   labels:
     app: {{ template "certificator.name" . }}
     release: {{ .Release.Name }}
+    nais.io/prometheus: "nais"
   name: {{ template "certificator.name" . }}
 spec:
   jobLabel: app.kubernetes.io/name
