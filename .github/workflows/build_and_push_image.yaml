@@ -1,12 +1,10 @@
 name: Build and deploy image
 on:
   push:
+    branches: master
     paths-ignore:
       - "charts/**"
-
-env:
-  REGISTRY: europe-north1-docker.pkg.dev/nais-io/nais/images
-
+      - "*.md"
 jobs:
   build_and_push:
     permissions:
@@ -17,51 +15,17 @@ jobs:
       "version": ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # ratchet:actions/checkout@v3
       - name: Generate version
         id: version
         run: echo "version=$(date +'%Y%m%d-%H%M%S')-$(git rev-parse --short HEAD)" >> ${GITHUB_OUTPUT}
-      - id: "auth"
-        name: "Authenticate to Google Cloud"
-        uses: google-github-actions/auth@v0.8.3
+      - uses: nais/platform-build-push-sign@a31c0ad7e31ff154df50baa9c3a5d33b310e8209 # ratchet:nais/platform-build-push-sign@main
+        id: build-push-sign
         with:
+          name: certificator
+          google_service_account: gh-certificator
           workload_identity_provider: ${{ secrets.NAIS_IO_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: "gh-certificator@nais-io.iam.gserviceaccount.com"
-          token_format: "access_token"
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Login to registry
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: "oauth2accesstoken"
-          password: "${{ steps.auth.outputs.access_token }}"
-      - name: Docker meta
-        id: metadata
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ env.REGISTRY }}/certificator
-          # Docker tags based on the following events/attributes
-          tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern=v{{version}}
-            type=semver,pattern=v{{major}}.{{minor}}
-            type=semver,pattern=v{{major}}
-            type=sha
-            type=raw,value=${{ steps.version.outputs.version }}
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          file: Dockerfile
           push: true
-          tags: ${{ steps.metadata.outputs.tags }}
-          labels: ${{ steps.metadata.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
   rollout:
     permissions:
       id-token: write
@@ -69,7 +33,7 @@ jobs:
     runs-on: fasit-deploy
     if: github.ref == 'refs/heads/master'
     steps:
-      - uses: nais/fasit-deploy@main
+      - uses: nais/fasit-deploy@b2c0b6d049b53bef41b321eec406fe66938576fd # ratchet:nais/fasit-deploy@main
         with:
           json: '{"image": {"tag": "${{ needs.build_and_push.outputs.version }}"}}'
           feature_name: certificator
