@@ -42,3 +42,23 @@ creates a new bundle that can be mounted into the pods directly.
 
 Furthermore, Certificator exposes the certificate bundles both in PEM format,
 and also Java Keystore format, suitable for Java applications.
+
+## Verifying the certificator images and their contents
+
+The images are signed "keylessly" using [Sigstore cosign](https://github.com/sigstore/cosign).
+To verify their authenticity run
+```
+cosign verify \
+--certificate-identity "https://github.com/nais/certificator/.github/workflows/release.yml@refs/heads/master" \
+--certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+europe-north1-docker.pkg.dev/nais-io/nais/images/certificator@sha256:<shasum>
+```
+
+The images are also attested with SBOMs in the [CycloneDX](https://cyclonedx.org/) format.
+You can verify these by running
+```
+cosign verify-attestation --type cyclonedx  \
+--certificate-identity "https://github.com/nais/certificator/.github/workflows/build_and_push_image.yaml@refs/heads/master" \
+--certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+europe-north1-docker.pkg.dev/nais-io/nais/images/certificator@sha256:<shasum>
+```
