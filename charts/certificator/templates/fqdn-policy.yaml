@@ -1,0 +1,19 @@
+apiVersion: networking.gke.io/v1alpha3
+kind: FQDNNetworkPolicy
+metadata:
+  labels:
+    team: nais
+  name: {{ .Release.Name }}-fqdn
+spec:
+  egress:
+  - ports:
+    - port: 443
+      protocol: TCP
+    to:
+    - fqdns:
+      - curl.se
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes:
+  - Egress
