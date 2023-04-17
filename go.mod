@@ -12,7 +12,7 @@ require (
 	golang.org/x/vuln v0.0.0-20221116204841-fac3670c993c
 	honnef.co/go/tools v0.4.3
 	k8s.io/api v0.27.0
-	k8s.io/apimachinery v0.27.0
+	k8s.io/apimachinery v0.27.1
 	k8s.io/client-go v0.27.0
 	mvdan.cc/gofumpt v0.5.0
 )
