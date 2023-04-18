@@ -1,14 +1,12 @@
-FROM golang:1.19-alpine as builder
-RUN apk add --no-cache git make curl build-base
+FROM cgr.dev/chainguard/go:1.19 as builder
 ENV GOOS=linux
-COPY . /src
+ENV CGO_ENABLED=0
 WORKDIR /src
+COPY . /src/
 RUN make test
 RUN make certificator
 
-FROM alpine:3
-RUN apk add --no-cache ca-certificates tzdata
-RUN export PATH=$PATH:/app
+FROM cgr.dev/chainguard/static
 WORKDIR /app
 COPY --from=builder /src/bin/certificator /app/certificator
 CMD ["/app/certificator"]
