@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pavlo-v-chernykh/keystore-go v2.1.0+incompatible
-	github.com/prometheus/client_golang v1.15.0
+	github.com/prometheus/client_golang v1.15.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.2
 	golang.org/x/net v0.9.0
