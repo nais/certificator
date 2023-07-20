@@ -11,8 +11,8 @@ require (
 	golang.org/x/net v0.12.0
 	golang.org/x/vuln v0.2.0
 	honnef.co/go/tools v0.4.3
-	k8s.io/api v0.27.3
-	k8s.io/apimachinery v0.27.3
+	k8s.io/api v0.27.4
+	k8s.io/apimachinery v0.27.4
 	k8s.io/client-go v0.27.3
 	mvdan.cc/gofumpt v0.5.0
 )
