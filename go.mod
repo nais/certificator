@@ -8,7 +8,7 @@ require (
 	github.com/prometheus/client_golang v1.16.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/net v0.12.0
+	golang.org/x/net v0.13.0
 	golang.org/x/vuln v0.2.0
 	honnef.co/go/tools v0.4.3
 	k8s.io/api v0.27.4
