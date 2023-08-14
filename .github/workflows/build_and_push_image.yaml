@@ -14,10 +14,9 @@ jobs:
     outputs:
       "version": ${{ steps.version.outputs.version }}
     env:
-      BUILDER_IMG: "cgr.dev/chainguard/go:1.19"
-      RUNNER_IMG: "cgr.dev/chainguard/static"
-      BASEIMG_IDENTITY: "https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main"
-      BASEIMG_ISSUER: "https://token.actions.githubusercontent.com"
+      RUNNER_IMG: "gcr.io/distroless/static-debian11:nonroot"
+      BASEIMG_IDENTITY: "keyless@distroless.iam.gserviceaccount.com"
+      BASEIMG_ISSUER: "https://accounts.google.com"
     steps:
       - name: Checkout
         uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # ratchet:actions/checkout@v3
@@ -25,8 +24,6 @@ jobs:
         uses: sigstore/cosign-installer@d13028333d784fcc802b67ec924bcebe75aa0a5f # ratchet:sigstore/cosign-installer@main
         with:
           cosign-release: 'v2.0.0'
-      - name: Verify builder image
-        run: cosign verify --certificate-identity ${{ env.BASEIMG_IDENTITY }} --certificate-oidc-issuer ${{ env.BASEIMG_ISSUER }} ${{ env.BUILDER_IMG }}
       - name: Verify runner image
         run: cosign verify --certificate-identity ${{ env.BASEIMG_IDENTITY }} --certificate-oidc-issuer ${{ env.BASEIMG_ISSUER }} ${{ env.RUNNER_IMG }}
       - name: Generate version
