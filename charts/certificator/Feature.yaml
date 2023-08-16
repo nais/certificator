@@ -18,9 +18,6 @@ values:
   podMonitor:
     config:
       type: bool
-  seccomp:
-    config:
-      type: bool
   webproxy:
     config:
       type: bool
