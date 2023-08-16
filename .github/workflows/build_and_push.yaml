@@ -16,7 +16,6 @@ env:
 
 jobs:
   build_and_push:
-    needs: test
     if: github.ref == 'refs/heads/master'
     permissions:
       contents: "read"
