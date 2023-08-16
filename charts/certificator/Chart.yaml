@@ -1,5 +1,7 @@
 apiVersion: v2
 name: certificator
-description: Certificator daemon
 type: application
 version: 0.2.0
+description: Collect TLS CA certificates from various sources and expose them in PEM and JKS format as Kubernetes configmaps
+sources:
+  - https://github.com/nais/certificator/tree/master/charts/certificator

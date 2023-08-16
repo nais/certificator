@@ -1,0 +1,26 @@
+environmentKinds:
+  - tenant
+  - onprem
+  - legacy
+values:
+  caDirectories:
+    config:
+      type: string_array
+  caUrls:
+    config:
+      type: string_array
+  image.tag:
+    config:
+      type: string
+  namespaceLabelSelector:
+    config:
+      type: string
+  podMonitor:
+    config:
+      type: bool
+  seccomp:
+    config:
+      type: bool
+  webproxy:
+    config:
+      type: bool

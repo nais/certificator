@@ -1,0 +1,93 @@
+name: Build and deploy
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: master
+    paths-ignore:
+      - "*.md"
+
+env:
+  GOOGLE_REGISTRY: "europe-north1-docker.pkg.dev"
+  FEATURE_NAME: "certificator"
+
+jobs:
+  build_and_push:
+    needs: test
+    if: github.ref == 'refs/heads/master'
+    permissions:
+      contents: "read"
+      id-token: "write"
+    runs-on: ubuntu-latest
+    env:
+      RUNNER_IMG: "gcr.io/distroless/static-debian11:nonroot"
+      BASEIMG_IDENTITY: "keyless@distroless.iam.gserviceaccount.com"
+      BASEIMG_ISSUER: "https://accounts.google.com"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # ratchet:actions/checkout@v3
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6e04d228eb30da1757ee4e1dd75a0ec73a653e06 # ratchet:sigstore/cosign-installer@main
+        with:
+          cosign-release: 'v2.0.0'
+      - name: Verify runner image
+        run: cosign verify --certificate-oidc-issuer https://accounts.google.com  --certificate-identity keyless@distroless.iam.gserviceaccount.com gcr.io/distroless/static-debian11:nonroot
+      - name: Verify runner image
+        run: cosign verify --certificate-identity ${{ env.BASEIMG_IDENTITY }} --certificate-oidc-issuer ${{ env.BASEIMG_ISSUER }} ${{ env.RUNNER_IMG }}
+      - uses: nais/platform-build-push-sign@fb7da39ee56c8904ed15c02705a1780cb278a65b # ratchet:nais/platform-build-push-sign@main
+        id: build_push_sign
+        with:
+          name: ${{ env.FEATURE_NAME }}
+          google_service_account: gh-${{ env.FEATURE_NAME }}
+          push: true
+          workload_identity_provider: ${{ secrets.NAIS_IO_WORKLOAD_IDENTITY_PROVIDER }}
+      - uses: azure/setup-helm@5119fcb9089d432beecbf79bb2c7915207344b78 # ratchet:azure/setup-helm@v3
+        with:
+          version: "v3.12.2"
+      - name: Package chart
+        id: package_chart
+        env:
+          CHART_PATH: ./charts
+        run: |
+          base_version="$(yq '.version' < "${{ env.CHART_PATH }}/Chart.yaml")"
+          chart_version="${base_version}-${{ steps.build_push_sign.outputs.version }}"
+
+          yq eval \
+            '.version="'"$chart_version"'"' \
+            "${{ env.CHART_PATH }}/Chart.yaml" --inplace
+          yq eval \
+            '.image.tag="${{ steps.build_push_sign.outputs.version }}"' \
+            "${{ env.CHART_PATH }}/values.yaml" --inplace
+
+          # helm dependency update "${{ env.CHART_PATH }}"
+          helm package "${{ env.CHART_PATH }}" --destination .
+
+          name=$(yq '.name' < "${{ env.CHART_PATH }}/Chart.yaml")
+          echo "name=$name" >> $GITHUB_OUTPUT
+          echo "version=$chart_version" >> $GITHUB_OUTPUT
+          echo "archive=$name-$chart_version.tgz" >> $GITHUB_OUTPUT
+      - name: Push Chart
+        run: |-
+          chart="${{ steps.package_chart.outputs.archive }}"
+          echo "Pushing: $chart"
+          helm push "$chart" oci://${{ env.GOOGLE_REGISTRY }}/nais-io/nais/feature
+    outputs:
+      chart_name: ${{ steps.package_chart.outputs.name }}
+      chart_version: ${{ steps.package_chart.outputs.version }}
+      chart_archive: ${{ steps.package_chart.outputs.archive }}
+
+  rollout:
+    runs-on: fasit-deploy
+    if: github.ref == 'refs/heads/master'
+    permissions:
+      id-token: write
+    needs:
+      - build_and_push
+    steps:
+      - uses: nais/fasit-deploy@v2 # ratchet:exclude
+        with:
+          chart: oci://${{ env.GOOGLE_REGISTRY }}/nais-io/nais/feature/${{ needs.build_and_push.outputs.chart_name }}
+          version: ${{ needs.build_and_push.outputs.chart_version }}
