@@ -19,4 +19,3 @@ logLevel: "debug"
 namespaceLabelSelector: "team"
 webproxy: false
 podMonitor: true
-seccomp: true

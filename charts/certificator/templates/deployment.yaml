@@ -20,10 +20,8 @@ spec:
     spec:
       serviceAccountName: {{ include "certificator.name" . }}
       securityContext:
-        {{- if .Values.seccomp }}
         seccompProfile:
           type: RuntimeDefault
-        {{- end }}
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
@@ -43,6 +41,8 @@ spec:
               containerPort: 8080
               protocol: TCP
           securityContext:
+            seccompProfile:
+              type: RuntimeDefault
             runAsNonRoot: true
             runAsUser: 1000
             runAsGroup: 1000
