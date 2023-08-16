@@ -8,15 +8,16 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/context"
+
 	"github.com/nais/certificator/pkg/certbundle"
 	"github.com/nais/certificator/pkg/config"
 	"github.com/nais/certificator/pkg/kube"
 	"github.com/nais/certificator/pkg/loader"
 	"github.com/nais/certificator/pkg/metrics"
 	"github.com/nais/certificator/pkg/version"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 )
 
 func main() {
@@ -111,7 +112,6 @@ func run() error {
 	}
 
 	setupNamespaceWatch()
-	applyContext, applyCancel = context.WithTimeout(ctx, cfg.ApplyTimeout)
 	applies = make(chan func() error, 1024)
 
 	for ctx.Err() == nil {
