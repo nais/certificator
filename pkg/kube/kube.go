@@ -6,7 +6,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/nais/certificator/pkg/metrics"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 	v1 "k8s.io/api/core/v1"
@@ -15,6 +14,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"github.com/nais/certificator/pkg/metrics"
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth/azure"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -27,9 +28,6 @@ const jksFilename = "ca-bundle.jks"
 // Kubernetes CM names
 const pemResourceName = "ca-bundle-pem"
 const jksResourceName = "ca-bundle-jks"
-
-// Backoff time per apply
-const retryBackoff = time.Second * 3
 
 type PEMWriter interface {
 	WritePEM(w io.Writer) error
