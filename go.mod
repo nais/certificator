@@ -1,6 +1,6 @@
 module github.com/nais/certificator
 
-go 1.19
+go 1.21
 
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
