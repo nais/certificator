@@ -10,7 +10,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/net v0.14.0
 	golang.org/x/vuln v1.0.1
-	honnef.co/go/tools v0.4.3
+	honnef.co/go/tools v0.4.5
 	k8s.io/api v0.28.0
 	k8s.io/apimachinery v0.28.0
 	k8s.io/client-go v0.28.0
