@@ -9,7 +9,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/net v0.20.0
-	golang.org/x/vuln v1.0.3
+	golang.org/x/vuln v1.0.4
 	honnef.co/go/tools v0.4.6
 	k8s.io/api v0.29.1
 	k8s.io/apimachinery v0.29.1
