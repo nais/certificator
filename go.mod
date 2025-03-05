@@ -6,7 +6,7 @@ toolchain go1.23.4
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pavlo-v-chernykh/keystore-go v2.1.0+incompatible
-	github.com/prometheus/client_golang v1.21.0
+	github.com/prometheus/client_golang v1.21.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/net v0.35.0
