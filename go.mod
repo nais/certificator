@@ -1,7 +1,7 @@
 module github.com/nais/certificator
 
 go 1.21
-toolchain go1.23.4
+toolchain go1.24.1
 
 require (
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -9,7 +9,7 @@ require (
 	github.com/prometheus/client_golang v1.21.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/net v0.37.0
+	golang.org/x/net v0.38.0
 	golang.org/x/vuln v1.1.4
 	honnef.co/go/tools v0.6.1
 	k8s.io/api v0.32.3
