@@ -15,7 +15,7 @@ require (
 	k8s.io/api v0.32.3
 	k8s.io/apimachinery v0.32.3
 	k8s.io/client-go v0.32.3
-	mvdan.cc/gofumpt v0.7.0
+	mvdan.cc/gofumpt v0.8.0
 )
 
 require (
@@ -49,7 +49,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20231108232855-2478ac86f678 // indirect
-	golang.org/x/mod v0.23.0 // indirect
+	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
@@ -57,7 +57,7 @@ require (
 	golang.org/x/term v0.31.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
-	golang.org/x/tools v0.30.0 // indirect
+	golang.org/x/tools v0.32.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
