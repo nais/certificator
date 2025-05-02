@@ -2,6 +2,8 @@ environmentKinds:
   - tenant
   - onprem
   - legacy
+dependencies:
+  - fqdn-policy
 values:
   caDirectories:
     config:
