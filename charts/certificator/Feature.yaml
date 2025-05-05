@@ -4,6 +4,7 @@ environmentKinds:
   - legacy
 dependencies:
   - fqdn-policy
+  - monitoring-crds
 values:
   caDirectories:
     config:
