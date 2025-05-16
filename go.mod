@@ -1,6 +1,7 @@
 module github.com/nais/certificator
 
-go 1.21
+go 1.24.0
+
 toolchain go1.24.1
 
 require (
@@ -13,7 +14,7 @@ require (
 	golang.org/x/vuln v1.1.4
 	honnef.co/go/tools v0.6.1
 	k8s.io/api v0.33.0
-	k8s.io/apimachinery v0.33.0
+	k8s.io/apimachinery v0.33.1
 	k8s.io/client-go v0.33.0
 	mvdan.cc/gofumpt v0.8.0
 )
