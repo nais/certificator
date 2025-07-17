@@ -3,8 +3,9 @@ environmentKinds:
   - onprem
   - legacy
 dependencies:
-  - fqdn-policy
-  - monitoring-crds
+  - allOf:
+      - fqdn-policy
+      - monitoring-crds
 values:
   caDirectories:
     config:
