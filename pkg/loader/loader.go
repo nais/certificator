@@ -40,7 +40,7 @@ func download(ctx context.Context, url string) (io.Reader, error) {
 	return buf, nil
 }
 
-// Create a certificate bundle from the content of a list of URLs.
+// BundleFromURLs creates a certificate bundle from the content of a list of URLs.
 func BundleFromURLs(ctx context.Context, bundle *certbundle.Bundle, urls []string) error {
 	errors := make(chan error, len(urls)+1)
 	readers := make(chan io.Reader, len(urls)+1)
@@ -53,7 +53,7 @@ func BundleFromURLs(ctx context.Context, bundle *certbundle.Bundle, urls []strin
 			log.Infof("Downloading certificates from %s", u)
 			r, err := download(ctx, u)
 			if err != nil {
-				errors <- fmt.Errorf("Failed to download %s: %w", u, err)
+				errors <- fmt.Errorf("failed to download %s: %w", u, err)
 			} else {
 				readers <- r
 			}
@@ -80,7 +80,7 @@ func BundleFromURLs(ctx context.Context, bundle *certbundle.Bundle, urls []strin
 	return nil
 }
 
-// Create a certificate bundle from the content of file system directories.
+// BundleFromPaths creates a certificate bundle from the content of file system directories.
 func BundleFromPaths(paths []string, bundle *certbundle.Bundle) error {
 	var err error
 
