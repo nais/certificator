@@ -53,7 +53,7 @@ func BundleFromURLs(ctx context.Context, bundle *certbundle.Bundle, urls []strin
 			log.Infof("Downloading certificates from %s", u)
 			r, err := download(ctx, u)
 			if err != nil {
-				errors <- err
+				errors <- fmt.Errorf("Failed to download %s: %w", u, err)
 			} else {
 				readers <- r
 			}
