@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -125,6 +126,10 @@ func run() error {
 			// and trigger a synchronization.
 			if !ok {
 				setupNamespaceWatch()
+				continue
+			}
+			if strings.HasPrefix(watchedNamespace.Name, "pg-") {
+				// Skip namespaces that start with "pg-", as they are used by PostgreSQL and not relevant for CA bundles.
 				continue
 			}
 			if watchedNamespace.Deleted {
