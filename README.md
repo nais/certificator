@@ -56,6 +56,7 @@ europe-north1-docker.pkg.dev/nais-io/nais/images/certificator@sha256:<shasum>
 
 The images are also attested with SBOMs in the [CycloneDX](https://cyclonedx.org/) format.
 You can verify these by running
+
 ```
 cosign verify-attestation --type cyclonedx  \
 --certificate-identity "https://github.com/nais/certificator/.github/workflows/build_and_push_image.yaml@refs/heads/master" \

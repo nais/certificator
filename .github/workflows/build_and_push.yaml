@@ -40,8 +40,6 @@ jobs:
           push: true
           workload_identity_provider: ${{ secrets.NAIS_IO_WORKLOAD_IDENTITY_PROVIDER }}
       - uses: azure/setup-helm@b7246b12e77f7134dc2d460a3d5bad15bbe29390 # ratchet:azure/setup-helm@v3
-        with:
-          version: "v3.12.2"
       - name: Package chart
         id: package_chart
         env:
