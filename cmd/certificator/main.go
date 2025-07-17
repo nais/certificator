@@ -81,10 +81,19 @@ func run() error {
 		return fmt.Errorf("init kubernetes client: %w", err)
 	}
 
-	log.Infof("Configuration complete, starting application.")
-
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT)
 	defer cancel()
+
+	updatedBundle, err = update(ctx, cfg)
+	if err != nil {
+		log.Errorf("Failed to retrieve certificate when starting: %s", err)
+		os.Exit(1)
+	}
+
+	log.Infof("Refreshed certificate list from external sources with %d entries", updatedBundle.Len())
+	bundle = updatedBundle
+
+	log.Infof("Configuration complete, starting application.")
 
 	go func() {
 		log.Infof("Starting metrics server at %s", cfg.MetricsAddress)
