@@ -62,25 +62,28 @@ func NewFromEnv() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cfg, cfg.Validate()
+	if err := cfg.Validate(); err != nil {
+		return nil, err
+	}
+	return cfg, nil
 }
 
 func (cfg *Config) Validate() error {
 	if len(cfg.CAUrls)+len(cfg.CADirectories) == 0 {
 		return fmt.Errorf("no CA certificate sources configured")
 	}
-	for i, path := range cfg.CADirectories {
-		path, err := filepath.Abs(path)
+	for i, p := range cfg.CADirectories {
+		absPath, err := filepath.Abs(p)
 		if err != nil {
 			return err
 		}
-		cfg.CADirectories[i] = path
-		stat, err := os.Stat(path)
+		cfg.CADirectories[i] = absPath
+		stat, err := os.Stat(absPath)
 		if err != nil {
 			return err
 		}
 		if !stat.IsDir() {
-			return fmt.Errorf("%s is not a directory", path)
+			return fmt.Errorf("%s is not a directory", absPath)
 		}
 	}
 	return nil
@@ -88,5 +91,4 @@ func (cfg *Config) Validate() error {
 
 func Usage() error {
 	return envconfig.Usage(prefix, &Config{})
-	//return envconfig.Usagef(prefix, &Config{}, w, envconfig.DefaultTableFormat)
 }

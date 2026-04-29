@@ -37,7 +37,6 @@ func Watch(ctx context.Context, client *kubernetes.Clientset, labelSelector stri
 		LabelSelector:   labelSelector,
 		ResourceVersion: "0",
 	})
-
 	if err != nil {
 		return err
 	}

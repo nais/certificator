@@ -1,6 +1,7 @@
 package loader_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/nais/certificator/pkg/loader"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 const password = "foobar"

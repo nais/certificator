@@ -17,8 +17,8 @@ import (
 
 type Bundle struct {
 	certs     []*x509.Certificate
-	password  string
 	changedAt time.Time
+	password  string
 }
 
 func New(password string) *Bundle {
@@ -153,7 +153,7 @@ func certificateAlias(cert *x509.Certificate) string {
 		return '_'
 	}
 	name := strings.ToLower(cert.Subject.CommonName)
-	if len(name) == 0 {
+	if name == "" {
 		name = "anon_" + hex.EncodeToString(cert.Signature)[:32]
 	}
 	name = strings.Map(replace, name)

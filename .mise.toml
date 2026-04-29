@@ -1,0 +1,40 @@
+[tools]
+go = "1.26.0"
+golangci-lint = "2.11.4"
+"go:golang.org/x/vuln/cmd/govulncheck" = "v1.3.0"
+"go:mvdan.cc/gofumpt" = "v0.9.2"
+
+[tasks.build]
+description = "Build certificator binary"
+run = """
+BUILDTIME=$(date "+%s")
+DATE=$(date "+%Y-%m-%d")
+LAST_COMMIT=$(git rev-parse --short HEAD)
+LDFLAGS="-s -X github.com/nais/certificator/pkg/version.Revision=${LAST_COMMIT} -X github.com/nais/certificator/pkg/version.Date=${DATE} -X github.com/nais/certificator/pkg/version.BuildUnixTime=${BUILDTIME}"
+go build -o bin/certificator -ldflags "${LDFLAGS}" cmd/certificator/*.go
+"""
+
+[tasks.test]
+description = "Run tests"
+run = "go test -count 1 -v ./..."
+
+[tasks.lint]
+description = "Run golangci-lint"
+run = "golangci-lint run ./..."
+
+[tasks.vulncheck]
+description = "Run govulncheck"
+run = "govulncheck -show verbose ./..."
+
+[tasks.check]
+description = "Run all checks (lint + vulncheck)"
+depends = ["lint", "vulncheck"]
+
+[tasks.fmt]
+description = "Format code with gofumpt"
+run = "gofumpt -w ."
+
+[tasks.docker]
+description = "Build Docker image"
+run = "docker build -t ghcr.io/nais/certificator:latest ."
+

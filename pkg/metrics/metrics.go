@@ -6,8 +6,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const namespace = "nais"
-const subsystem = "certificator"
+const (
+	namespace = "nais"
+	subsystem = "certificator"
+)
 
 const labelErrorCode = "error_code"
 

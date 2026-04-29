@@ -29,6 +29,21 @@ as one of the URLs. See [CA Extract](https://curl.se/docs/caextract.html) for de
 
 Run `certificator --help` for more information.
 
+## Development
+
+This project uses [mise](https://mise.jdx.dev/) for tool management. All tool versions are pinned in `.mise.toml`.
+
+```sh
+mise trust          # trust the config (first time only)
+mise install        # install all tools
+mise run build      # build the binary
+mise run test       # run tests
+mise run lint       # run golangci-lint (includes gosec, staticcheck, govet, etc.)
+mise run vulncheck  # run govulncheck
+mise run check      # run lint + vulncheck
+mise run fmt        # format code with gofumpt
+```
+
 ## Why
 
 Certain legacy services at NAV use certificates signed by an internal certificate authority.

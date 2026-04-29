@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 
 	"github.com/nais/certificator/pkg/certbundle"
 	"github.com/nais/certificator/pkg/config"
@@ -42,16 +42,16 @@ func update(ctx context.Context, cfg *config.Config) (*certbundle.Bundle, error)
 		return nil, err
 	}
 	return bundle, err
-
 }
 
 func run() error {
 	var bundle, updatedBundle *certbundle.Bundle
 	var namespaceWatcher chan *kube.Namespace
-	var namespaces = make(kube.Namespaces)
+	namespaces := make(kube.Namespaces)
 	var applies chan func() error
 	var applyContext context.Context
-	var applyCancel context.CancelFunc
+	applyCancel := func() {}         // no-op default; replaced when applyContext is created
+	defer func() { applyCancel() }() //nolint:gocritic // applyCancel is reassigned in the select loop
 
 	if len(os.Args) > 1 && (os.Args[1] == "-h" || os.Args[1] == "--help") {
 		return config.Usage()
@@ -86,8 +86,7 @@ func run() error {
 
 	updatedBundle, err = update(ctx, cfg)
 	if err != nil {
-		log.Errorf("Failed to retrieve certificate when starting: %s", err)
-		os.Exit(1)
+		return fmt.Errorf("failed to retrieve certificate when starting: %w", err)
 	}
 
 	log.Infof("Refreshed certificate list from external sources with %d entries", updatedBundle.Len())
@@ -97,9 +96,13 @@ func run() error {
 
 	go func() {
 		log.Infof("Starting metrics server at %s", cfg.MetricsAddress)
-		err := http.ListenAndServe(cfg.MetricsAddress, promhttp.Handler())
-		if err != nil {
-			log.Errorf("Metrics server shut down: %s", err)
+		srv := &http.Server{
+			Addr:              cfg.MetricsAddress,
+			Handler:           promhttp.Handler(),
+			ReadHeaderTimeout: 10 * time.Second,
+		}
+		if srvErr := srv.ListenAndServe(); srvErr != nil {
+			log.Errorf("Metrics server shut down: %s", srvErr)
 			cancel()
 		}
 	}()
@@ -112,9 +115,9 @@ func run() error {
 		namespaceWatcher = make(chan *kube.Namespace, 1024)
 		go func() {
 			log.Infof("Starting Kubernetes namespace watcher.")
-			err := kube.Watch(ctx, clientset, cfg.NamespaceLabelSelector, namespaceWatcher)
-			if err != nil {
-				log.Errorf("Init Kubernetes namespace watcher: %s", err)
+			watchErr := kube.Watch(ctx, clientset, cfg.NamespaceLabelSelector, namespaceWatcher)
+			if watchErr != nil {
+				log.Errorf("Init Kubernetes namespace watcher: %s", watchErr)
 			} else {
 				log.Errorf("Kubernetes namespace watcher stopped.")
 			}
@@ -128,7 +131,7 @@ func run() error {
 		select {
 		case <-ctx.Done():
 			log.Infof("Received signal, shutting down.")
-			return nil
+			return nil //nolint:govet // applyCancel is called via deferred closure
 
 		case watchedNamespace, ok := <-namespaceWatcher:
 			// Each time a namespace is returned from the watcher, add it to the list of candidates,
@@ -170,7 +173,7 @@ func run() error {
 				bundleTimer.Stop()
 				continue
 			}
-			applyContext, applyCancel = context.WithTimeout(ctx, cfg.ApplyTimeout)
+			applyContext, applyCancel = context.WithTimeout(ctx, cfg.ApplyTimeout) //nolint:govet // applyCancel is called via deferred closure
 			log.Infof("Generating %d CA certificate bundle ConfigMap operations, timeout %s", len(candidates), cfg.ApplyTimeout)
 			err = kube.GenerateApplyOperations(applyContext, clientset, bundle, candidates, applies)
 			if err != nil {

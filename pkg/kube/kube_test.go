@@ -16,12 +16,15 @@ func bundleFromTestData() *certbundle.Bundle {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	defer func() {
+		if closeErr := f.Close(); closeErr != nil {
+			panic(closeErr)
+		}
+	}()
 
 	bundle := certbundle.New(password)
 
 	err = bundle.ReadAll(f)
-
 	if err != nil {
 		panic(err)
 	}

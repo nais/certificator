@@ -2,6 +2,7 @@ package loader
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,12 +12,11 @@ import (
 
 	"github.com/nais/certificator/pkg/certbundle"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 )
 
 // Download some content and copy it into an io.Reader buffer.
 func download(ctx context.Context, url string) (io.Reader, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func download(ctx context.Context, url string) (io.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("GET %s: %s", url, resp.Status)
@@ -100,12 +100,14 @@ func BundleFromPaths(paths []string, bundle *certbundle.Bundle) error {
 			}
 			path := filepath.Join(directory, entry.Name())
 			log.Infof("Load %s", path)
-			f, err := os.Open(path)
+			f, err := os.Open(filepath.Clean(path))
 			if err != nil {
 				return err
 			}
 			err = bundle.ReadAll(f)
-			f.Close()
+			if closeErr := f.Close(); closeErr != nil && err == nil {
+				err = closeErr
+			}
 			if err != nil {
 				return err
 			}

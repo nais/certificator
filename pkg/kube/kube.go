@@ -2,12 +2,12 @@ package kube
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,12 +22,16 @@ import (
 )
 
 // Kubernetes CM data keys, i.e. filename in pod
-const pemFilename = "ca-bundle.pem"
-const jksFilename = "ca-bundle.jks"
+const (
+	pemFilename = "ca-bundle.pem"
+	jksFilename = "ca-bundle.jks"
+)
 
 // Kubernetes CM names
-const pemResourceName = "ca-bundle-pem"
-const jksResourceName = "ca-bundle-jks"
+const (
+	pemResourceName = "ca-bundle-pem"
+	jksResourceName = "ca-bundle-jks"
+)
 
 type PEMWriter interface {
 	WritePEM(w io.Writer) error
