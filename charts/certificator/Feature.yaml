@@ -1,7 +1,6 @@
 environmentKinds:
   - tenant
   - onprem
-  - legacy
 dependencies:
   - allOf:
       - monitoring-crds
