@@ -1,6 +1,6 @@
 module github.com/nais/certificator
 
-go 1.26.4
+go 1.26.8
 
 tool (
 	golang.org/x/vuln/cmd/govulncheck
