@@ -3,6 +3,7 @@ environmentKinds:
   - onprem
 dependencies:
   - allOf:
+      - fqdn-policy-crds
       - monitoring-crds
 values:
   caDirectories:
